@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Pandora — UX Wireframes & Design Notes</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  :root{
+    --navy:#0B1A3D; --navy2:#1E2761; --ice:#CADCFC; --accent:#6B8AFE;
+    --coral:#FF6B6B; --amber:#FFB84D; --emerald:#3DD98C; --slate:#4B556B;
+    --muted:#909AB8; --cream:#F6F8FC; --ink:#0F172A;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--cream);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Arial,sans-serif;}
+  .wrap{max-width:1200px;margin:0 auto;padding:56px 32px 80px}
+  header.hero{background:var(--navy);color:#fff;border-radius:24px;padding:44px 48px;
+    position:relative;overflow:hidden;margin-bottom:40px}
+  header.hero::after{content:"";position:absolute;right:-80px;top:-80px;width:320px;height:320px;
+    background:var(--accent);opacity:.22;border-radius:50%}
+  .eyebrow{font-size:12px;letter-spacing:.18em;color:var(--ice);font-weight:700;text-transform:uppercase}
+  h1{font-size:54px;margin:6px 0 8px;font-weight:900;letter-spacing:-.02em;line-height:1.02}
+  h1 .accent{color:var(--accent)}
+  .tag{display:inline-block;background:var(--accent);color:#fff;font-weight:700;font-size:12px;
+    padding:6px 12px;border-radius:999px;letter-spacing:.14em;margin-top:14px}
+  p.lede{max-width:720px;color:#dfe4f4;font-size:17px;line-height:1.55;margin-top:14px}
+
+  section{margin:48px 0}
+  h2{font-size:28px;margin:0 0 6px;color:var(--navy);font-weight:800;letter-spacing:-.01em}
+  .kicker{color:var(--accent);font-size:12px;letter-spacing:.18em;font-weight:700;text-transform:uppercase}
+  .subtle{color:var(--slate);font-size:15px;max-width:780px;line-height:1.55}
+
+  .grid{display:grid;gap:20px}
+  .g2{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  @media (max-width:860px){.g2,.g3,.g4{grid-template-columns:1fr}}
+
+  .card{background:#fff;border:1px solid #e7ecf6;border-radius:18px;padding:22px;
+    box-shadow:0 1px 2px rgba(15,23,42,.04)}
+  .card h3{margin:0 0 6px;color:var(--navy);font-size:16px}
+  .card p{margin:0;color:var(--slate);font-size:14px;line-height:1.55}
+
+  /* Wireframe shared look */
+  .wf{background:#fff;border:1px solid #d9dfea;border-radius:16px;padding:18px;position:relative}
+  .wf-title{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .wf-title .dot{width:10px;height:10px;border-radius:50%}
+  .wf-title .dot.r{background:var(--coral)}
+  .wf-title .dot.y{background:var(--amber)}
+  .wf-title .dot.g{background:var(--emerald)}
+  .wf-title .url{font-family:ui-monospace,Consolas,monospace;color:var(--slate);font-size:12px;
+    background:#eef2fa;padding:4px 10px;border-radius:8px}
+  .wf h4{margin:0 0 10px;font-size:13px;color:var(--accent);letter-spacing:.12em;text-transform:uppercase}
+  .skeleton{height:12px;border-radius:6px;background:#e7ecf6;margin:8px 0}
+  .s-60{width:60%}.s-75{width:75%}.s-40{width:40%}.s-90{width:90%}
+
+  .caption{display:flex;gap:10px;margin-top:10px;align-items:flex-start}
+  .pill{font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;text-transform:uppercase;
+    letter-spacing:.08em}
+  .pill.accent{background:#eef2ff;color:var(--accent)}
+  .pill.amber{background:#fff4e0;color:#a3660b}
+
+  /* Frame chrome */
+  .browser{background:#fff;border:1px solid #d9dfea;border-radius:16px;overflow:hidden}
+  .chrome{background:#eef2fa;padding:8px 12px;display:flex;gap:8px;align-items:center}
+  .chrome .bar{flex:1;background:#fff;border:1px solid #e7ecf6;border-radius:8px;padding:4px 10px;
+    color:var(--slate);font-family:ui-monospace,Consolas,monospace;font-size:12px}
+
+  /* Meter */
+  .meter{height:12px;border-radius:999px;background:#eef2fa;overflow:hidden}
+  .meter > div{height:100%;border-radius:999px}
+  .meter.low > div{width:30%;background:var(--emerald)}
+  .meter.med > div{width:65%;background:var(--amber)}
+  .meter.hi  > div{width:92%;background:var(--coral)}
+
+  /* Annotation callouts */
+  .callout{display:flex;gap:10px;margin-top:8px;background:#f4f7ff;border:1px dashed var(--accent);
+    border-radius:12px;padding:10px 12px;color:var(--navy);font-size:13px}
+  .callout b{color:var(--accent)}
+  .num{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-weight:800;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px}
+
+  /* Flow */
+  .flow{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .step{flex:1;min-width:170px;background:#fff;border:1px solid #e7ecf6;border-radius:14px;padding:14px;
+    position:relative}
+  .step .n{position:absolute;top:-14px;left:14px;background:var(--navy);color:#fff;font-weight:800;
+    font-family:ui-monospace,Consolas,monospace;font-size:12px;padding:4px 10px;border-radius:999px}
+  .step h5{margin:6px 0 4px;font-size:15px;color:var(--navy)}
+  .step small{color:var(--slate);line-height:1.5;display:block;font-size:12px}
+
+  /* Design tokens */
+  .swatch{height:60px;border-radius:12px;display:flex;align-items:flex-end;padding:8px;color:#fff;
+    font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+
+  table{width:100%;border-collapse:collapse;border-radius:12px;overflow:hidden;
+    box-shadow:0 1px 2px rgba(15,23,42,.04);background:#fff}
+  th,td{text-align:left;padding:10px 14px;font-size:14px;border-bottom:1px solid #edf1f8}
+  th{background:var(--navy);color:#fff;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+  tr:nth-child(even) td{background:var(--cream)}
+
+  /* State chips */
+  .state{display:inline-flex;gap:6px;align-items:center;font-size:11px;font-weight:700;
+    padding:4px 8px;border-radius:999px;letter-spacing:.08em;text-transform:uppercase}
+  .state.hi{background:#fde5e5;color:#b91c1c}
+  .state.md{background:#fff0d9;color:#b2500c}
+  .state.lo{background:#e3fbea;color:#118041}
+
+  footer{margin-top:60px;color:var(--slate);font-size:12px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow">PANDORA · UX PACK</div>
+    <h1>Wireframes &amp; <span class="accent">Design Notes</span></h1>
+    <p class="lede">A kind, fast, browser-only scanner for the 80% of devs who are not security specialists.
+      This pack documents the user flow, key screens, design tokens, and interaction rationale behind the hackathon MVP.</p>
+    <span class="tag">v1.0 · 14 APR 2026</span>
+  </header>
+
+  <!-- =========================== Principles =========================== -->
+  <section>
+    <div class="kicker">DESIGN PRINCIPLES</div>
+    <h2>Four rules we refused to break.</h2>
+    <p class="subtle">When something broke, we asked which principle we violated — and worked back from there.</p>
+
+    <div class="grid g4" style="margin-top:22px">
+      <div class="card"><h3>1. Kindness over cleverness</h3>
+        <p>Every finding must read like a helpful teammate, not a compliance PDF.</p></div>
+      <div class="card"><h3>2. Three-second paths</h3>
+        <p>Paste → scan → understand → fix. No login, no onboarding, no settings.</p></div>
+      <div class="card"><h3>3. Anxiety, then relief</h3>
+        <p>Risk meter creates urgency; Beginner Mode and fixes remove it.</p></div>
+      <div class="card"><h3>4. Demo-first polish</h3>
+        <p>Optimize for the 30 seconds a hackathon judge actually watches.</p></div>
+    </div>
+  </section>
+
+  <!-- =========================== User Flow =========================== -->
+  <section>
+    <div class="kicker">USER FLOW</div>
+    <h2>From landing to fix in under 90 seconds.</h2>
+    <div class="flow" style="margin-top:22px">
+      <div class="step"><span class="n">01</span><h5>Land</h5><small>Sees hero + single textarea. No signup wall.</small></div>
+      <div class="step"><span class="n">02</span><h5>Paste / Upload</h5><small>Drops code, log, config, or .txt/.json.</small></div>
+      <div class="step"><span class="n">03</span><h5>Scan</h5><small>Meter swings. Issue chips populate.</small></div>
+      <div class="step"><span class="n">04</span><h5>Understand</h5><small>Beginner Mode re-explains in plain English.</small></div>
+      <div class="step"><span class="n">05</span><h5>Fix</h5><small>One-click copy, paste into editor, ship.</small></div>
+    </div>
+  </section>
+
+  <!-- =========================== Wireframe 1 — Empty State =========================== -->
+  <section>
+    <div class="kicker">WIREFRAME 01</div>
+    <h2>Landing / Empty state.</h2>
+    <p class="subtle">One visible action. No nav. The input field is focused on load.</p>
+
+    <div class="browser" style="margin-top:18px">
+      <div class="chrome">
+        <div class="wf-title" style="margin:0">
+          <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        </div>
+        <div class="bar">pandora.app/scan</div>
+      </div>
+      <div style="padding:26px 28px 30px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+          <div style="display:flex;gap:10px;align-items:center">
+            <div style="width:32px;height:32px;border-radius:8px;background:var(--accent);color:#fff;
+              font-weight:900;display:flex;align-items:center;justify-content:center">P</div>
+            <strong style="color:var(--navy)">Pandora</strong>
+            <span style="color:var(--muted);font-size:13px">AI Risk Scanner</span>
+          </div>
+          <span class="pill accent">Beta · Free</span>
+        </div>
+
+        <h3 style="margin:0 0 6px;color:var(--navy);font-size:22px">Paste something to scan.</h3>
+        <p style="margin:0 0 14px;color:var(--slate);font-size:14px">We'll flag secrets, keys, PII and weak crypto — and explain each one in plain English.</p>
+
+        <div style="border:1px dashed #c7cfe1;border-radius:12px;background:#f9fbff;padding:22px;min-height:200px">
+          <div style="color:var(--muted);font-family:ui-monospace,Consolas,monospace;font-size:13px">
+            // paste your code, config or log here…
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:14px;align-items:center;flex-wrap:wrap">
+          <button style="background:var(--accent);color:#fff;border:0;border-radius:10px;padding:10px 18px;font-weight:700">Scan</button>
+          <button style="background:#fff;border:1px solid #d9dfea;border-radius:10px;padding:10px 14px;color:var(--slate)">Upload file</button>
+          <button style="background:#fff7e8;color:#a3660b;border:1px solid #ffd59a;border-radius:10px;padding:10px 14px;font-weight:700">🧒 Beginner Mode</button>
+          <span style="margin-left:auto;color:var(--muted);font-size:12px">Nothing is stored. Zero signup.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout"><span class="num">1</span><div><b>No chrome noise.</b> No sidebar, no auth. The entire surface sells one action.</div></div>
+    <div class="callout"><span class="num">2</span><div><b>Beginner Mode is visible from frame one.</b> It's our differentiator — we don't bury it behind a settings gear.</div></div>
+  </section>
+
+  <!-- =========================== Wireframe 2 — Scanning =========================== -->
+  <section>
+    <div class="kicker">WIREFRAME 02</div>
+    <h2>Scanning state.</h2>
+    <p class="subtle">Perceived speed matters more than actual speed. We animate, not spin.</p>
+
+    <div class="grid g2" style="margin-top:18px">
+      <div class="wf">
+        <div class="wf-title"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="url">pandora.app/scan</span></div>
+        <h4>Input (read-only while scanning)</h4>
+        <div style="background:var(--ink);color:var(--ice);border-radius:10px;padding:14px;
+          font-family:ui-monospace,Consolas,monospace;font-size:12.5px;line-height:1.55;opacity:.85">
+const config = {<br>
+&nbsp;&nbsp;db_password: "hunter2",<br>
+&nbsp;&nbsp;api_key: "sk-proj-abcd1234EFGH5678ijkl",<br>
+&nbsp;&nbsp;admin_email: "alex@acme.io",<br>
+&nbsp;&nbsp;AWS_KEY: "AKIAIOSFODNN7EXAMPLE"<br>
+}
+        </div>
+        <div style="margin-top:14px;display:flex;gap:10px;align-items:center;color:var(--slate);font-size:13px">
+          <div style="width:14px;height:14px;border-radius:50%;border:3px solid var(--accent);border-top-color:transparent;
+            animation:spin 1s linear infinite"></div>
+          Scanning 4 lines · checking 27 rules…
+        </div>
+      </div>
+
+      <div class="wf">
+        <h4>Skeleton results</h4>
+        <div class="skeleton s-40"></div>
+        <div class="meter low"><div></div></div>
+        <div style="margin-top:14px">
+          <div class="skeleton s-75"></div>
+          <div class="skeleton s-90"></div>
+          <div class="skeleton s-60"></div>
+          <div class="skeleton s-75"></div>
+        </div>
+        <div class="callout"><span class="num">3</span><div><b>Never leave a judge staring at a spinner.</b> We reveal a ghost of the results panel so they know a verdict is imminent.</div></div>
+      </div>
+    </div>
+    <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+  </section>
+
+  <!-- =========================== Wireframe 3 — Results =========================== -->
+  <section>
+    <div class="kicker">WIREFRAME 03</div>
+    <h2>Results — the money screen.</h2>
+    <p class="subtle">The 30-second view the demo is built around. Risk on the left, issues on the right, fixes below.</p>
+
+    <div class="browser" style="margin-top:18px">
+      <div class="chrome">
+        <div class="wf-title" style="margin:0"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div>
+        <div class="bar">pandora.app/scan</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;padding:26px 28px">
+        <div>
+          <h4 style="margin:0 0 8px;color:var(--accent);letter-spacing:.12em;font-size:11px;text-transform:uppercase">Risk Score</h4>
+          <div class="meter hi"><div></div></div>
+          <div style="display:flex;justify-content:space-between;color:var(--muted);font-size:10px;margin-top:4px;font-weight:700">
+            <span>SAFE</span><span>CAUTION</span><span>DANGER</span>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:10px;align-items:center">
+            <span class="state hi">🔴 High Risk</span>
+            <span style="color:var(--slate);font-size:13px">4 issues · 3 high · 1 low</span>
+          </div>
+
+          <h4 style="margin-top:22px">AI Explanation</h4>
+          <div style="background:#f0f4ff;border:1px solid #dbe4ff;border-radius:10px;padding:12px 14px;color:var(--navy);
+            font-size:13px;line-height:1.55">
+            Your config file exposes three kinds of secrets that should never sit in source control.
+            If this repo is ever pushed publicly — or shared with a contractor — anyone could log into
+            your database and your OpenAI account within minutes.
+          </div>
+        </div>
+
+        <div>
+          <h4 style="margin:0 0 8px">Issues (4)</h4>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div class="card" style="padding:12px 14px">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <strong>Hardcoded password</strong><span class="state hi">High</span>
+              </div>
+              <small style="color:var(--slate);font-size:12.5px">Line 2: <code>db_password: "hunter2"</code></small>
+            </div>
+            <div class="card" style="padding:12px 14px">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <strong>OpenAI API key</strong><span class="state hi">High</span>
+              </div>
+              <small style="color:var(--slate);font-size:12.5px">Line 3: <code>sk-proj-abcd…ijkl</code></small>
+            </div>
+            <div class="card" style="padding:12px 14px">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <strong>AWS access key ID</strong><span class="state hi">High</span>
+              </div>
+              <small style="color:var(--slate);font-size:12.5px">Line 5: <code>AKIA…AMPLE</code></small>
+            </div>
+            <div class="card" style="padding:12px 14px">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <strong>Email in source</strong><span class="state lo">Low</span>
+              </div>
+              <small style="color:var(--slate);font-size:12.5px">Line 4: <code>alex@acme.io</code></small>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="padding:0 28px 26px">
+        <h4 style="margin:0 0 8px">Suggested Fixes</h4>
+        <div class="card" style="padding:14px">
+          <ul style="margin:0;padding-left:18px;color:var(--slate);line-height:1.7;font-size:13px">
+            <li>Move <code>db_password</code>, <code>api_key</code> and <code>AWS_KEY</code> to environment variables.</li>
+            <li>Rotate the exposed OpenAI key and the AWS key <i>before</i> lunch.</li>
+            <li>Swap <code>admin_email</code> for a shared role-based alias (e.g. <code>ops@acme.io</code>).</li>
+          </ul>
+          <div style="display:flex;gap:10px;margin-top:10px">
+            <button style="background:var(--accent);color:#fff;border:0;border-radius:10px;padding:8px 14px;font-weight:700">📋 Copy fixes</button>
+            <button style="background:#fff;border:1px solid #d9dfea;border-radius:10px;padding:8px 14px">View diff</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout"><span class="num">4</span><div><b>Severity → color → position</b>. High-risk issues float to the top. Low-risk issues never earn a red badge.</div></div>
+    <div class="callout"><span class="num">5</span><div><b>Fixes live below, not above.</b> We want judges to see the problem, feel tension, <i>then</i> feel relief.</div></div>
+  </section>
+
+  <!-- =========================== Wireframe 4 — Beginner Mode =========================== -->
+  <section>
+    <div class="kicker">WIREFRAME 04</div>
+    <h2>Beginner Mode toggled.</h2>
+    <p class="subtle">Same findings, translated. Tone shift is the entire value prop.</p>
+    <div class="wf">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <strong style="color:var(--navy)">AI Explanation</strong>
+        <span class="pill amber">🧒 Beginner Mode</span>
+      </div>
+      <div style="background:#fff7e8;border:1px solid #ffd59a;border-radius:12px;padding:14px;color:#6b3f0c;font-size:14px;line-height:1.6">
+        Imagine your config file is a sticky note on your front door. Right now it has your house key,
+        your car key, and your debit card PIN written on it. Anyone who walks past can read it.
+        We're going to move the keys to a locked drawer (an <i>environment variable</i>), and then you'll
+        throw away the old keys and cut new ones — just in case someone already saw them.
+      </div>
+    </div>
+    <div class="callout"><span class="num">6</span><div><b>Tone is a product feature.</b> The Beginner voice is a prompt we author, version, and test like any other asset.</div></div>
+  </section>
+
+  <!-- =========================== Wireframe 5 — Empty / safe =========================== -->
+  <section>
+    <div class="kicker">WIREFRAME 05</div>
+    <h2>Clean-scan state.</h2>
+    <p class="subtle">The happy path has to feel earned, not empty. One sentence of praise; one sentence of advice.</p>
+    <div class="wf" style="display:grid;grid-template-columns:1fr 2fr;gap:20px;align-items:center">
+      <div>
+        <div style="font-size:60px">✅</div>
+        <strong style="color:var(--navy);font-size:20px">Looks clean.</strong>
+        <div style="color:var(--slate);font-size:13px;margin-top:4px">No secrets detected in 84 lines.</div>
+      </div>
+      <div>
+        <div style="background:#e3fbea;border:1px solid #b6ebcb;border-radius:12px;padding:14px;color:#106b35;font-size:13px;line-height:1.55">
+          Nothing obvious here — but scanning catches only what's stored in plaintext. Consider also: enabling
+          secret scanning in your CI, and rotating any key that touched a laptop that left the office.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================== Design tokens =========================== -->
+  <section>
+    <div class="kicker">DESIGN TOKENS</div>
+    <h2>Colors, type, spacing.</h2>
+
+    <div class="grid g4" style="margin-top:18px">
+      <div><div class="swatch" style="background:var(--navy)">Navy · 0B1A3D</div><small style="color:var(--slate);font-size:12px">Brand + titles</small></div>
+      <div><div class="swatch" style="background:var(--accent)">Indigo · 6B8AFE</div><small style="color:var(--slate);font-size:12px">Primary action</small></div>
+      <div><div class="swatch" style="background:var(--emerald)">Emerald · 3DD98C</div><small style="color:var(--slate);font-size:12px">Safe / low</small></div>
+      <div><div class="swatch" style="background:var(--amber);color:#6b3f0c">Amber · FFB84D</div><small style="color:var(--slate);font-size:12px">Beginner Mode / medium</small></div>
+      <div><div class="swatch" style="background:var(--coral)">Coral · FF6B6B</div><small style="color:var(--slate);font-size:12px">Danger / high</small></div>
+      <div><div class="swatch" style="background:var(--ice);color:#0B1A3D">Ice · CADCFC</div><small style="color:var(--slate);font-size:12px">Surface accents</small></div>
+      <div><div class="swatch" style="background:var(--cream);color:var(--navy)">Cream · F6F8FC</div><small style="color:var(--slate);font-size:12px">Background</small></div>
+      <div><div class="swatch" style="background:var(--ink)">Ink · 0F172A</div><small style="color:var(--slate);font-size:12px">Code blocks</small></div>
+    </div>
+
+    <div class="grid g2" style="margin-top:26px">
+      <div class="card">
+        <h3>Type scale</h3>
+        <table><thead><tr><th>Element</th><th>Size</th><th>Weight</th></tr></thead>
+        <tbody>
+          <tr><td>Page title</td><td>34–54 px</td><td>900</td></tr>
+          <tr><td>Section title</td><td>22–28 px</td><td>800</td></tr>
+          <tr><td>Card title</td><td>16 px</td><td>700</td></tr>
+          <tr><td>Body</td><td>14 px</td><td>400</td></tr>
+          <tr><td>Caption</td><td>12 px</td><td>600</td></tr>
+          <tr><td>Code</td><td>12.5 px</td><td>mono</td></tr>
+        </tbody></table>
+      </div>
+      <div class="card">
+        <h3>Spacing &amp; radius</h3>
+        <table><thead><tr><th>Token</th><th>Value</th><th>Where</th></tr></thead>
+        <tbody>
+          <tr><td>Gutter</td><td>20 px</td><td>Between cards</td></tr>
+          <tr><td>Pad-lg</td><td>26–28 px</td><td>Section padding</td></tr>
+          <tr><td>Pad-md</td><td>14 px</td><td>Card interior</td></tr>
+          <tr><td>Radius-lg</td><td>18 px</td><td>Cards</td></tr>
+          <tr><td>Radius-md</td><td>12 px</td><td>Buttons, callouts</td></tr>
+          <tr><td>Radius-pill</td><td>999 px</td><td>Chips + meter</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================== Accessibility & edge cases =========================== -->
+  <section>
+    <div class="kicker">A11Y + EDGE CASES</div>
+    <h2>We shipped these, not aspired to them.</h2>
+    <div class="grid g3" style="margin-top:18px">
+      <div class="card"><h3>Contrast ≥ AA</h3><p>All text passes WCAG AA against its background — including the coral on white pill.</p></div>
+      <div class="card"><h3>Keyboard-only</h3><p>Every action (scan, upload, toggle, copy) is reachable with <code>Tab</code> / <code>Enter</code> only.</p></div>
+      <div class="card"><h3>Empty input</h3><p>Scan button is disabled until textarea has non-whitespace content.</p></div>
+      <div class="card"><h3>Oversize file</h3><p>Files over 100K chars are rejected client-side with an explanatory toast.</p></div>
+      <div class="card"><h3>Offline / API fail</h3><p>Falls back to regex-only mode. Banner explains AI explanation is unavailable.</p></div>
+      <div class="card"><h3>Mobile</h3><p>Two-column results collapse to stacked cards under 860 px.</p></div>
+    </div>
+  </section>
+
+  <footer>Pandora · UX Pack · prepared by Tushar (UX lead) · 14 Apr 2026</footer>
+</div>
+</body>
+</html>

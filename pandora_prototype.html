@@ -1,0 +1,876 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Pandora — AI Risk Scanner (Prototype)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.6/babel.min.js"></script>
+<style>
+  :root{
+    --navy:#0B1A3D; --navy2:#1E2761; --ice:#CADCFC; --accent:#6B8AFE;
+    --coral:#FF6B6B; --amber:#FFB84D; --emerald:#3DD98C; --slate:#4B556B;
+    --muted:#909AB8; --cream:#F6F8FC; --ink:#0F172A; --card:#ffffff;
+    --border:#e7ecf6; --shadow: 0 1px 2px rgba(15,23,42,.05), 0 10px 40px rgba(15,23,42,.05);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--cream);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  .wrap{max-width:1180px;margin:0 auto;padding:40px 24px 60px}
+
+  .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:26px}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand .chip{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#8ea5ff);
+    color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center;font-family:ui-monospace,Consolas,monospace}
+  .brand h1{font-size:20px;margin:0;color:var(--navy);letter-spacing:-.01em}
+  .brand span{color:var(--muted);font-size:13px;margin-left:6px}
+  .pill{display:inline-flex;align-items:center;gap:6px;background:#eaf1ff;color:var(--accent);
+    font-weight:700;font-size:12px;padding:6px 10px;border-radius:999px;letter-spacing:.08em;text-transform:uppercase}
+
+  .hero{background:#fff;border:1px solid var(--border);border-radius:20px;padding:28px;
+    box-shadow:var(--shadow);margin-bottom:18px}
+  .hero h2{margin:0 0 8px;color:var(--navy);font-size:26px;letter-spacing:-.01em}
+  .hero p{margin:0;color:var(--slate);font-size:14px;line-height:1.55;max-width:780px}
+
+  .panel{background:#fff;border:1px solid var(--border);border-radius:20px;padding:24px;
+    box-shadow:var(--shadow)}
+  label{display:block;font-size:12px;font-weight:700;color:var(--slate);
+    letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
+  textarea{width:100%;min-height:220px;resize:vertical;border:1px solid var(--border);
+    border-radius:12px;padding:14px;font-family:ui-monospace,Consolas,"SF Mono",monospace;
+    font-size:13px;background:#f9fbff;color:var(--ink);outline:none;line-height:1.55}
+  textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px #dbe4ff}
+  .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px}
+  button{border:0;cursor:pointer;font-weight:700;border-radius:10px;padding:10px 16px;
+    font-size:13.5px;transition:transform .05s ease, box-shadow .15s ease}
+  button:active{transform:translateY(1px)}
+  button.primary{background:var(--accent);color:#fff;box-shadow:0 4px 14px rgba(107,138,254,.35)}
+  button.primary:hover{background:#5777ff}
+  button.primary:disabled{background:#c1c9e0;box-shadow:none;cursor:not-allowed}
+  button.ghost{background:#fff;border:1px solid var(--border);color:var(--slate)}
+  button.warn{background:#fff7e8;color:#a3660b;border:1px solid #ffd59a}
+  button.warn.active{background:var(--amber);color:#fff;border-color:var(--amber)}
+
+  .upload{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);
+    border-radius:10px;padding:10px 14px;font-size:13.5px;color:var(--slate);cursor:pointer}
+  .upload input{display:none}
+  .filename{color:var(--muted);font-size:12px;margin-left:4px}
+
+  .samples{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+  .sample{font-size:12px;padding:4px 10px;border-radius:999px;background:#eef2fa;color:var(--navy);
+    border:1px solid var(--border);cursor:pointer}
+  .sample:hover{background:#e5ebf7}
+
+  .results{margin-top:18px;display:grid;grid-template-columns:1.35fr 1fr;gap:18px}
+  @media (max-width:920px){.results{grid-template-columns:1fr}}
+  .card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:18px;box-shadow:var(--shadow)}
+
+  .meter-wrap{margin-top:6px}
+  .meter{height:14px;border-radius:999px;background:#eef2fa;overflow:hidden;position:relative}
+  .meter > div{height:100%;border-radius:999px;transition:width .7s cubic-bezier(.2,.8,.2,1), background .3s}
+  .scale{display:flex;justify-content:space-between;color:var(--muted);font-size:10px;margin-top:5px;
+    font-weight:700;letter-spacing:.12em}
+
+  .badge{display:inline-flex;gap:6px;align-items:center;font-weight:800;font-size:13px;padding:6px 12px;border-radius:999px}
+  .badge.none{background:#e6f4ea;color:#137a3c}
+  .badge.low{background:#e4f8ec;color:#158a47}
+  .badge.medium{background:#fff0d9;color:#a3660b}
+  .badge.high{background:#fde5e5;color:#b91c1c}
+
+  .state{display:inline-flex;gap:6px;align-items:center;font-size:10.5px;font-weight:800;
+    padding:3px 8px;border-radius:999px;letter-spacing:.08em;text-transform:uppercase}
+  .state.critical{background:#fde0e0;color:#7a0d0d}
+  .state.high{background:#fde5e5;color:#b91c1c}
+  .state.medium{background:#fff0d9;color:#b2500c}
+  .state.low{background:#e3fbea;color:#118041}
+
+  /* Category group accordions */
+  .cat-group{border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:10px;background:#fff}
+  .cat-head{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;background:#fafcff;
+    border-bottom:1px solid var(--border)}
+  .cat-head:hover{background:#f1f5ff}
+  .cat-head.closed{border-bottom:0}
+  .cat-head .caret{color:var(--muted);font-size:12px;transition:transform .2s}
+  .cat-head.open .caret{transform:rotate(90deg)}
+  .cat-title{color:var(--navy);font-weight:800;font-size:14px;margin:0;flex:1}
+  .cat-tag{color:var(--muted);font-size:12px;font-weight:500;margin-left:6px}
+  .cat-count{font-weight:800;font-size:12px;color:var(--navy);background:#eef2fa;
+    padding:2px 8px;border-radius:999px}
+
+  .flag{font-size:10px;font-weight:800;padding:3px 8px;border-radius:999px;letter-spacing:.08em;text-transform:uppercase}
+  .flag.CRITICAL{background:#fde0e0;color:#7a0d0d}
+  .flag.HIGH{background:#fde5e5;color:#b91c1c}
+  .flag.MEDIUM{background:#fff0d9;color:#b2500c}
+  .flag.LOW{background:#e3fbea;color:#118041}
+  .flag.COMMON{background:#eaeefc;color:#2d3da8}
+  .flag.VERY{background:#ffecd1;color:#8a4400}
+
+  .issue{border-top:1px solid var(--border);padding:12px 14px;background:#fff;
+    display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+  .issue:first-child{border-top:0}
+  .issue h4{margin:0 0 4px;color:var(--navy);font-size:13.5px}
+  .issue code{background:#eef2fa;padding:1.5px 6px;border-radius:6px;font-size:12px;color:var(--navy);
+    font-family:ui-monospace,Consolas,monospace}
+  .issue small{color:var(--slate);font-size:12.5px;display:block;margin-top:2px}
+
+  .explain{background:#f0f4ff;border:1px solid #dbe4ff;border-radius:12px;padding:14px;
+    color:var(--navy);font-size:14px;line-height:1.6}
+  .explain.beginner{background:#fff7e8;border-color:#ffd59a;color:#6b3f0c}
+
+  .fixes li{margin-bottom:6px;line-height:1.5}
+
+  .empty{text-align:center;color:var(--muted);font-size:13px;padding:30px 0}
+  .clean{text-align:center;padding:26px;background:#e3fbea;border:1px solid #b6ebcb;color:#106b35;border-radius:14px}
+  .clean .emoji{font-size:48px}
+
+  .hint{font-size:12px;color:var(--muted);margin-top:8px}
+  .footer-note{margin-top:30px;text-align:center;color:var(--muted);font-size:12px}
+
+  .spinner{width:14px;height:14px;border-radius:50%;border:3px solid var(--accent);
+    border-top-color:transparent;animation:spin .9s linear infinite;display:inline-block;vertical-align:-2px;margin-right:6px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  .diff{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:#0f172a;color:#e2e8f0;
+    border-radius:10px;padding:12px;line-height:1.65;white-space:pre;overflow-x:auto}
+  .diff .rm{color:#fca5a5}
+  .diff .ad{color:#86efac}
+
+  .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;flex-wrap:wrap}
+  .mini{font-size:11px;color:var(--muted)}
+
+  /* Category summary bars */
+  .cat-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;margin-top:12px}
+  .cat-chip{display:flex;align-items:center;gap:8px;background:#fafcff;border:1px solid var(--border);
+    border-radius:10px;padding:8px 10px;font-size:12.5px;color:var(--slate)}
+  .cat-chip b{color:var(--navy);font-size:12.5px}
+  .cat-chip .n{margin-left:auto;font-weight:800;color:var(--navy);background:#eef2fa;padding:2px 8px;border-radius:999px}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useMemo, useEffect } = React;
+
+/* ============================================================
+   Pandora detection engine — mirrors backend scanService.js
+   14 categories, ~60 rules
+   ============================================================ */
+
+const CATEGORIES = {
+  auth_secrets:   { id:"auth_secrets",   label:"Authentication Secrets",                  flag:"CRITICAL",         tagline:"Passwords and credentials that grant access right now." },
+  api_keys:       { id:"api_keys",       label:"API Keys & Access Keys",                  flag:"CRITICAL",         tagline:"Vendor-issued keys (AWS, OpenAI, Stripe, GitHub, Slack…)." },
+  crypto_keys:    { id:"crypto_keys",    label:"Cryptographic Keys",                      flag:"CRITICAL",         tagline:"Private keys, signing material, certificates." },
+  source_secrets: { id:"source_secrets", label:"Source Code Secrets",                     flag:"COMMON IN GITHUB", tagline:"Config, env files, build secrets, debug toggles." },
+  financial:      { id:"financial",      label:"Financial & Payment Data",                flag:"HIGH",             tagline:"Card numbers, IBAN, routing, SWIFT, CVV." },
+  direct_id:      { id:"direct_id",      label:"Direct Identifiers (PII)",                flag:"HIGH",             tagline:"SSN, passport, driver's license, full names." },
+  indirect_id:    { id:"indirect_id",    label:"Indirect Identifiers (Quasi-identifiers)", flag:"MEDIUM",          tagline:"DOB, ZIP, gender, age — re-identification risk." },
+  sensitive:      { id:"sensitive",      label:"Sensitive Personal Data",                 flag:"HIGH",             tagline:"GDPR Art. 9 — religion, orientation, race, biometrics, politics." },
+  health:         { id:"health",         label:"Health & Medical Data",                   flag:"HIGH",             tagline:"HIPAA / PHI — diagnoses, prescriptions, medical IDs." },
+  online_id:      { id:"online_id",      label:"Online Identifiers (Digital PII)",        flag:"MEDIUM",           tagline:"IP, MAC, UUID, cookie and session IDs." },
+  communication:  { id:"communication",  label:"Communication Data",                      flag:"MEDIUM",           tagline:"Emails, phone numbers, messaging handles." },
+  behavioral:     { id:"behavioral",     label:"User Behavioral / Tracking Data",         flag:"LOW",              tagline:"Geo, search, browsing, purchase and UA strings." },
+  internal_info:  { id:"internal_info",  label:"Internal System Information",             flag:"MEDIUM",           tagline:"Private hostnames, internal IPs, stack traces, paths." },
+  misconfig:      { id:"misconfig",      label:"Misconfigured Exposure",                  flag:"VERY IMPORTANT",   tagline:"Open S3, debug=true, CORS *, exposed .git, default creds." },
+};
+
+const CATEGORY_ORDER = [
+  "auth_secrets","api_keys","crypto_keys","source_secrets","misconfig",
+  "financial","direct_id","sensitive","health",
+  "indirect_id","online_id","communication","behavioral","internal_info",
+];
+
+const RULES = [
+  // === 1. Authentication Secrets ===
+  { id:"hardcoded_password", category:"auth_secrets", type:"Hardcoded Password",
+    regex:/\b(pass(word|wd)?|pwd)\s*[:=]\s*["'`]([^"'`\n]{1,64})["'`]/gi,
+    severity:"critical", message:"Password written directly into source." },
+  { id:"weak_password", category:"auth_secrets", type:"Weak / Common Password",
+    regex:/["'`](password|passw0rd|123456|123456789|qwerty|admin|letmein|welcome|iloveyou|P@ssw0rd)["'`]/gi,
+    severity:"critical", message:"Weak / common password literal." },
+  { id:"basic_auth_url", category:"auth_secrets", type:"Basic Auth in URL",
+    regex:/\b(?:https?|ftp|ssh):\/\/[A-Za-z0-9._-]+:[^@\s"'`]+@[A-Za-z0-9.-]+/g,
+    severity:"critical", message:"Username:password embedded in a URL." },
+  { id:"bearer_token", category:"auth_secrets", type:"Bearer Token",
+    regex:/\bBearer\s+[A-Za-z0-9\-_\.=]{20,}/g,
+    severity:"high", message:"Bearer token in an Authorization header." },
+  { id:"session_id", category:"auth_secrets", type:"Session / Cookie ID",
+    regex:/\b(session[_\s-]?id|jsessionid|phpsessid|sess[_\s-]?id)\s*[:=]\s*["'`]?([A-Za-z0-9_\-]{12,})["'`]?/gi,
+    severity:"high", message:"Session cookie / ID exposed." },
+
+  // === 2. API Keys & Access Keys ===
+  { id:"openai_key", category:"api_keys", type:"OpenAI API Key",
+    regex:/\bsk-(?:proj-)?[A-Za-z0-9_-]{16,}\b/g,
+    severity:"critical", message:"OpenAI-style API key (sk-...)." },
+  { id:"aws_access_key", category:"api_keys", type:"AWS Access Key ID",
+    regex:/\bAKIA[0-9A-Z]{16}\b/g,
+    severity:"critical", message:"AWS Access Key ID." },
+  { id:"aws_secret_key", category:"api_keys", type:"AWS Secret Access Key",
+    regex:/\b(aws[_\-]?secret[_\-]?access[_\-]?key)\s*[:=]\s*["'`]([A-Za-z0-9\/+=]{40})["'`]/gi,
+    severity:"critical", message:"AWS Secret Access Key." },
+  { id:"gcp_key", category:"api_keys", type:"Google API / GCP Key",
+    regex:/\bAIza[0-9A-Za-z_\-]{35}\b/g,
+    severity:"critical", message:"Google API / GCP key." },
+  { id:"github_token", category:"api_keys", type:"GitHub Token",
+    regex:/\bgh[pousr]_[A-Za-z0-9]{30,}\b/g,
+    severity:"critical", message:"GitHub personal / OAuth token." },
+  { id:"slack_token", category:"api_keys", type:"Slack Token",
+    regex:/\bxox[baprs]-[A-Za-z0-9-]{10,}\b/g,
+    severity:"critical", message:"Slack API token." },
+  { id:"stripe_key", category:"api_keys", type:"Stripe Key",
+    regex:/\b(sk|pk|rk)_(live|test)_[A-Za-z0-9]{16,}\b/g,
+    severity:"critical", message:"Stripe API key." },
+  { id:"twilio_sid", category:"api_keys", type:"Twilio Account SID",
+    regex:/\bAC[a-f0-9]{32}\b/g,
+    severity:"high", message:"Twilio Account SID." },
+  { id:"sendgrid_key", category:"api_keys", type:"SendGrid Key",
+    regex:/\bSG\.[A-Za-z0-9_\-]{22}\.[A-Za-z0-9_\-]{43}\b/g,
+    severity:"critical", message:"SendGrid API key." },
+  { id:"generic_api_key", category:"api_keys", type:"Generic API Key / Token",
+    regex:/\b(api[_-]?key|access[_-]?key|secret[_-]?key|auth[_-]?token|client[_-]?secret|token)\s*[:=]\s*["'`]([A-Za-z0-9_\-]{16,})["'`]/gi,
+    severity:"critical", message:"Hardcoded API key / secret / token." },
+
+  // === 3. Cryptographic Keys ===
+  { id:"private_key_block", category:"crypto_keys", type:"Private Key (PEM)",
+    regex:/-----BEGIN (?:RSA |DSA |EC |OPENSSH |PGP |ENCRYPTED )?PRIVATE KEY-----/g,
+    severity:"critical", message:"PEM-formatted private key block." },
+  { id:"jwt_token", category:"crypto_keys", type:"JWT Token",
+    regex:/\beyJ[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}\b/g,
+    severity:"high", message:"JSON Web Token (JWT)." },
+  { id:"jwt_secret", category:"crypto_keys", type:"JWT Signing Secret",
+    regex:/\b(jwt[_\-]?secret|jwt[_\-]?signing[_\-]?key)\s*[:=]\s*["'`]([A-Za-z0-9_\-]{8,})["'`]/gi,
+    severity:"critical", message:"Hardcoded JWT signing secret." },
+  { id:"cert_block", category:"crypto_keys", type:"Certificate Block",
+    regex:/-----BEGIN (?:CERTIFICATE|CERTIFICATE REQUEST)-----/g,
+    severity:"low", message:"X.509 certificate block (usually public, verify context)." },
+
+  // === 4. Source Code Secrets ===
+  { id:"dotenv_value", category:"source_secrets", type:".env Style Secret",
+    regex:/^\s*[A-Z][A-Z0-9_]{2,}_(KEY|TOKEN|SECRET|PASSWORD|PWD)\s*=\s*["'`]?([^\s"'`]{6,})["'`]?/gm,
+    severity:"critical", message:".env-style secret assignment." },
+  { id:"db_connection_string", category:"source_secrets", type:"Database Connection String",
+    regex:/\b(?:mongodb(?:\+srv)?|postgres(?:ql)?|mysql|redis|mssql|jdbc:[a-z]+):\/\/[^\s"'`<>]+/gi,
+    severity:"critical", message:"Database connection string (may embed credentials)." },
+  { id:"config_password_field", category:"source_secrets", type:"Config Password Field",
+    regex:/\b(db[_\-]?password|mysql[_\-]?password|postgres[_\-]?password|redis[_\-]?password)\s*[:=]\s*["'`]?([^"'`\n]{3,})["'`]?/gi,
+    severity:"critical", message:"Database password in config." },
+  { id:"debug_flag", category:"source_secrets", type:"Debug Flag Enabled",
+    regex:/\b(debug|DEBUG)\s*[:=]\s*(true|True|TRUE|1|"true"|'true')/g,
+    severity:"medium", message:"Debug flag enabled — avoid shipping to production." },
+  { id:"todo_secret", category:"source_secrets", type:"TODO Secret Note",
+    regex:/\b(?:TODO|FIXME|HACK)[:\s][^\n]{0,80}(password|secret|key|token)[^\n]*/gi,
+    severity:"medium", message:"TODO / FIXME comment referencing a secret." },
+
+  // === 5. Financial & Payment Data ===
+  { id:"credit_card", category:"financial", type:"Credit Card Number",
+    regex:/\b(?:4\d{3}|5[1-5]\d{2}|3[47]\d{2}|6(?:011|5\d{2}))(?:[ -]?\d{4}){2,3}(?:[ -]?\d{1,4})?\b/g,
+    severity:"critical", message:"Credit / debit card number." },
+  { id:"cvv", category:"financial", type:"CVV / CVC",
+    regex:/\b(cvv|cvc|cid)\s*[:=]\s*["'`]?(\d{3,4})["'`]?/gi,
+    severity:"critical", message:"Card security code (CVV/CVC)." },
+  { id:"iban", category:"financial", type:"IBAN",
+    regex:/\b[A-Z]{2}\d{2}[A-Z0-9]{4}\d{7}([A-Z0-9]?){0,16}\b/g,
+    severity:"high", message:"International Bank Account Number (IBAN)." },
+  { id:"routing_number", category:"financial", type:"US Routing Number",
+    regex:/\b(routing[_\s-]?number|aba)\s*[:=]\s*["'`]?(\d{9})["'`]?/gi,
+    severity:"high", message:"US bank routing number." },
+  { id:"bank_account", category:"financial", type:"Bank Account Number",
+    regex:/\b(account[_\s-]?number|acct[_\s-]?num|bank[_\s-]?account)\s*[:=]\s*["'`]?(\d{6,17})["'`]?/gi,
+    severity:"high", message:"Bank account number." },
+
+  // === 6. Direct Identifiers (PII) ===
+  { id:"ssn_us", category:"direct_id", type:"US Social Security Number",
+    regex:/\b(?!000|666|9\d\d)\d{3}-(?!00)\d{2}-(?!0000)\d{4}\b/g,
+    severity:"critical", message:"US Social Security Number." },
+  { id:"passport", category:"direct_id", type:"Passport Number",
+    regex:/\bpassport\s*(?:no\.?|number|#)?\s*[:=]?\s*([A-Z]?\d{6,9})\b/gi,
+    severity:"high", message:"Passport number." },
+  { id:"drivers_license", category:"direct_id", type:"Driver's License",
+    regex:/\b(?:driver'?s?\s*(?:license|licence)|DL|DLN)\s*[:#=]?\s*([A-Z0-9]{6,15})\b/gi,
+    severity:"high", message:"Driver's license number." },
+  { id:"national_id", category:"direct_id", type:"National ID",
+    regex:/\b(national[_\s-]?id|aadhaar|nric|pan[_\s-]?number|nin)\s*[:=]\s*["'`]?([A-Z0-9]{6,16})["'`]?/gi,
+    severity:"high", message:"National identification number." },
+  { id:"full_name_labeled", category:"direct_id", type:"Full Name (labeled)",
+    regex:/\b(?:full[_\s-]?name|customer[_\s-]?name|first[_\s-]?name|last[_\s-]?name)\s*[:=]\s*["'`]([^"'`\n]{2,64})["'`]/gi,
+    severity:"medium", message:"Personal name in a labeled field." },
+
+  // === 7. Indirect Identifiers ===
+  { id:"dob", category:"indirect_id", type:"Date of Birth",
+    regex:/\b(?:dob|date[_\s-]?of[_\s-]?birth|birth[_\s-]?date|birthday)\s*[:=]?\s*["'`]?(\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}|\d{4}-\d{2}-\d{2})["'`]?/gi,
+    severity:"medium", message:"Date of birth." },
+  { id:"zip_code", category:"indirect_id", type:"Postal / ZIP Code",
+    regex:/\b(?:zip(?:code)?|postal[_\s-]?code|post[_\s-]?code)\s*[:=]\s*["'`]?(\d{5}(?:-\d{4})?|[A-Z]\d[A-Z]\s?\d[A-Z]\d)["'`]?/gi,
+    severity:"low", message:"Postal / ZIP code in labeled field." },
+  { id:"age", category:"indirect_id", type:"Age",
+    regex:/\bage\s*[:=]\s*["'`]?(\d{1,3})["'`]?/gi,
+    severity:"low", message:"Age in a labeled field." },
+  { id:"gender", category:"indirect_id", type:"Gender",
+    regex:/\bgender\s*[:=]\s*["'`]?(male|female|non[\s-]?binary|m|f|nb|other)["'`]?/gi,
+    severity:"low", message:"Gender in a labeled field." },
+  { id:"marital_status", category:"indirect_id", type:"Marital Status",
+    regex:/\bmarital[_\s-]?status\s*[:=]\s*["'`]?(single|married|divorced|widowed|separated)["'`]?/gi,
+    severity:"low", message:"Marital status." },
+
+  // === 8. Sensitive Personal Data ===
+  { id:"religion", category:"sensitive", type:"Religion",
+    regex:/\breligion\s*[:=]\s*["'`]?([A-Za-z]{3,32})["'`]?/gi,
+    severity:"high", message:"Religion." },
+  { id:"sexual_orientation", category:"sensitive", type:"Sexual Orientation",
+    regex:/\b(sexual[_\s-]?orientation|orientation)\s*[:=]\s*["'`]?(straight|heterosexual|gay|lesbian|bisexual|bi|pansexual|asexual|queer|lgbtq\+?)["'`]?/gi,
+    severity:"high", message:"Sexual orientation." },
+  { id:"ethnicity", category:"sensitive", type:"Ethnicity / Race",
+    regex:/\b(ethnicity|race|nationality)\s*[:=]\s*["'`]?([A-Za-z\s]{2,32})["'`]?/gi,
+    severity:"high", message:"Ethnicity / race / nationality." },
+  { id:"political", category:"sensitive", type:"Political Affiliation",
+    regex:/\b(political[_\s-]?party|political[_\s-]?affiliation|union[_\s-]?membership)\s*[:=]\s*["'`]?([^"'`\n]{2,64})["'`]?/gi,
+    severity:"high", message:"Political / union affiliation." },
+  { id:"biometric", category:"sensitive", type:"Biometric Identifier",
+    regex:/\b(fingerprint|face[_\s-]?id|faceid|retina[_\s-]?scan|iris[_\s-]?scan|voiceprint|biometric[_\s-]?(?:hash|template))\b/gi,
+    severity:"high", message:"Biometric identifier." },
+
+  // === 9. Health & Medical Data ===
+  { id:"diagnosis", category:"health", type:"Medical Diagnosis",
+    regex:/\b(diagnosis|diagnosed\s+with|medical[_\s-]?condition|illness|disease)\s*[:=]?\s*["'`]?([A-Za-z\s]{3,64})["'`]?/gi,
+    severity:"high", message:"Medical diagnosis / condition." },
+  { id:"medication", category:"health", type:"Medication / Prescription",
+    regex:/\b(medication|prescription|dosage|Rx)\s*[:=]\s*["'`]?([A-Za-z0-9\s\-]{3,64})["'`]?/gi,
+    severity:"high", message:"Medication / prescription." },
+  { id:"medical_record", category:"health", type:"Medical Record Number",
+    regex:/\b(MRN|medical[_\s-]?record[_\s-]?number|patient[_\s-]?id)\s*[:#=]?\s*["'`]?([A-Z0-9]{4,15})["'`]?/gi,
+    severity:"high", message:"Medical record / patient identifier." },
+  { id:"health_keyword", category:"health", type:"Health Keyword",
+    regex:/\b(HIV|AIDS|cancer|diabetes|hypertension|depression|bipolar|schizophrenia|pregnancy|pregnant|chemotherapy|insulin)\b/gi,
+    severity:"high", message:"Health-related keyword in free text." },
+
+  // === 10. Online Identifiers ===
+  { id:"ipv4_public", category:"online_id", type:"IPv4 Address",
+    regex:/\b(?:(?:25[0-5]|2[0-4]\d|[01]?\d?\d)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d?\d)\b/g,
+    severity:"medium", message:"IPv4 address." },
+  { id:"mac_address", category:"online_id", type:"MAC Address",
+    regex:/\b([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}\b/g,
+    severity:"medium", message:"MAC address." },
+  { id:"uuid", category:"online_id", type:"UUID / Device ID",
+    regex:/\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\b/g,
+    severity:"low", message:"UUID / device identifier." },
+  { id:"imei", category:"online_id", type:"IMEI",
+    regex:/\bIMEI\s*[:#=]?\s*(\d{15})\b/gi,
+    severity:"high", message:"IMEI (device serial)." },
+  { id:"advertising_id", category:"online_id", type:"Advertising ID",
+    regex:/\b(gaid|idfa|advertising[_\s-]?id|android[_\s-]?id)\s*[:=]\s*["'`]?([A-Za-z0-9\-]{8,})["'`]?/gi,
+    severity:"medium", message:"Mobile advertising identifier." },
+
+  // === 11. Communication Data ===
+  { id:"email_address", category:"communication", type:"Email Address",
+    regex:/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g,
+    severity:"low", message:"Email address." },
+  { id:"phone_number", category:"communication", type:"Phone Number",
+    regex:/\b(?:\+?1[-.\s]?)?\(?([2-9]\d{2})\)?[-.\s]?(\d{3})[-.\s]?(\d{4})\b/g,
+    severity:"medium", message:"Phone number." },
+  { id:"im_handle", category:"communication", type:"Messaging Handle",
+    regex:/\b(whatsapp|telegram|signal|discord|wechat|skype)\s*[:=]\s*["'`]?(@?[A-Za-z0-9_\-\.+]{3,32})["'`]?/gi,
+    severity:"low", message:"Messaging app handle." },
+
+  // === 12. Behavioral / Tracking ===
+  { id:"geo_coords", category:"behavioral", type:"Geo Coordinates",
+    regex:/\b-?([1-8]?\d(?:\.\d+)|90(?:\.0+)?),\s*-?((?:1[0-7]\d|[1-9]?\d)(?:\.\d+)|180(?:\.0+)?)\b/g,
+    severity:"medium", message:"Latitude/longitude pair." },
+  { id:"location_field", category:"behavioral", type:"Location Field",
+    regex:/\b(location|gps|coords|geo)\s*[:=]\s*["'`]?([^"'`\n]{3,80})["'`]?/gi,
+    severity:"low", message:"Location / GPS field." },
+  { id:"search_query", category:"behavioral", type:"Search Query",
+    regex:/\b(search[_\s-]?query|query|q)\s*[:=]\s*["'`]([^"'`\n]{2,120})["'`]/gi,
+    severity:"low", message:"Captured search query." },
+  { id:"user_agent", category:"behavioral", type:"User-Agent String",
+    regex:/\bMozilla\/5\.0\s*\([^)]{5,200}\)[^"'`\n]{0,200}/g,
+    severity:"low", message:"Captured User-Agent string." },
+  { id:"purchase_history", category:"behavioral", type:"Purchase History",
+    regex:/\b(purchase[_\s-]?history|orders?|cart[_\s-]?items?)\s*[:=]/gi,
+    severity:"low", message:"Purchase / order history field." },
+
+  // === 13. Internal System Info ===
+  { id:"private_ip", category:"internal_info", type:"Private IP Address",
+    regex:/\b(?:10(?:\.\d{1,3}){3}|192\.168(?:\.\d{1,3}){2}|172\.(?:1[6-9]|2\d|3[01])(?:\.\d{1,3}){2})\b/g,
+    severity:"medium", message:"Private / internal IP address." },
+  { id:"internal_hostname", category:"internal_info", type:"Internal Hostname",
+    regex:/\b[a-z0-9\-]+\.(?:internal|local|corp|lan|intranet)\b/gi,
+    severity:"medium", message:"Internal hostname." },
+  { id:"file_path", category:"internal_info", type:"Absolute File Path",
+    regex:/\b(?:\/(?:home|Users|var|etc|opt|root)\/[^\s"'`<>\n]{2,120}|[A-Z]:\\Users\\[^\s"'`<>\n]{2,120})/g,
+    severity:"low", message:"Absolute file path / user directory." },
+  { id:"stack_trace", category:"internal_info", type:"Stack Trace",
+    regex:/\bat\s+[A-Za-z_$][\w$.]*\s*\([^)]*:\d+:\d+\)/g,
+    severity:"low", message:"JavaScript / Java stack-trace frame." },
+  { id:"port_open", category:"internal_info", type:"Exposed Port",
+    regex:/\blocalhost:(?:3306|5432|27017|6379|9200|11211|8080|8000)\b/g,
+    severity:"medium", message:"Reference to an exposed internal service port." },
+
+  // === 14. Misconfigured Exposure ===
+  { id:"cors_wildcard", category:"misconfig", type:"CORS Wildcard",
+    regex:/\bAccess-Control-Allow-Origin\s*:\s*\*|cors\s*\(\s*\{\s*origin\s*:\s*["'`]\*["'`]/gi,
+    severity:"high", message:"CORS configured with '*' — allows any origin." },
+  { id:"public_s3", category:"misconfig", type:"Open S3 Bucket URL",
+    regex:/\bhttps?:\/\/(?:[a-z0-9-]+\.s3|s3[.-][a-z0-9-]+)\.amazonaws\.com\/[^\s"'`<>]*/gi,
+    severity:"high", message:"S3 bucket URL — verify it is not public." },
+  { id:"exposed_git", category:"misconfig", type:"Exposed .git Folder",
+    regex:/\/\.git(?:\/|\b)/g,
+    severity:"high", message:"Reference to a .git folder served over HTTP." },
+  { id:"admin_panel", category:"misconfig", type:"Admin Panel Path",
+    regex:/\/(?:admin|wp-admin|phpmyadmin|manager\/html|administrator)(?:\/|\?|$)/g,
+    severity:"medium", message:"Admin panel path." },
+  { id:"default_credentials", category:"misconfig", type:"Default Credentials",
+    regex:/\b(admin|root|user|guest)\s*[:=]\s*["'`](admin|root|password|1234|changeme|default)["'`]/gi,
+    severity:"critical", message:"Default / unchanged credentials." },
+  { id:"ssl_disabled", category:"misconfig", type:"SSL Verification Disabled",
+    regex:/\b(rejectUnauthorized\s*:\s*false|verify\s*=\s*False|--insecure|CURLOPT_SSL_VERIFYPEER\s*,\s*0)\b/g,
+    severity:"high", message:"TLS / SSL verification disabled." },
+  { id:"auth_disabled", category:"misconfig", type:"Auth Disabled",
+    regex:/\b(auth|authentication|require[_\s-]?auth)\s*[:=]\s*(false|False|FALSE|0|"false"|'false')/g,
+    severity:"high", message:"Authentication disabled in config." },
+];
+
+const CATEGORY_TIP = {
+  auth_secrets:   "Rotate the credential now and move it to a secrets manager.",
+  api_keys:       "Revoke the key at the vendor and load the new one from env vars.",
+  crypto_keys:    "Treat as compromised; regenerate and distribute via a KMS.",
+  source_secrets: "Scrub from git history (git filter-repo / BFG) and rotate.",
+  financial:      "Tokenize or truncate; never persist full PAN or CVV.",
+  direct_id:      "Redact or tokenize. Apply PCI / PII retention limits.",
+  indirect_id:    "Generalize (bucket ages, truncate ZIP) to resist re-identification.",
+  sensitive:      "GDPR Art. 9 special category — explicit consent + encryption + access log.",
+  health:         "HIPAA / PHI — minimum-necessary access and audit trail required.",
+  online_id:      "Hash with a rotating salt and expire aggressively.",
+  communication:  "Hash or tokenize; never log in plaintext error messages.",
+  behavioral:     "Aggregate or anonymize before analytics; set short retention.",
+  internal_info:  "Avoid committing internal topology; strip from public logs.",
+  misconfig:      "Fix the configuration immediately and scan CI for regressions.",
+};
+
+function mask(value, severity){
+  if ((severity === "critical" || severity === "high") && value.length > 8){
+    return value.slice(0,4) + "****" + value.slice(-2);
+  }
+  return value;
+}
+
+function detectIssues(text){
+  const issues = [];
+  const seen = new Set();
+  RULES.forEach(rule => {
+    const re = new RegExp(rule.regex.source, rule.regex.flags);
+    let m;
+    while ((m = re.exec(text)) !== null){
+      const key = rule.id + "@" + m.index;
+      if (seen.has(key)) { if (m.index === re.lastIndex) re.lastIndex++; continue; }
+      seen.add(key);
+      const line = text.slice(0, m.index).split("\n").length;
+      issues.push({
+        id: rule.id, category: rule.category, type: rule.type,
+        severity: rule.severity, message: rule.message,
+        match: mask(m[0], rule.severity), line, index: m.index,
+      });
+      if (m.index === re.lastIndex) re.lastIndex++;
+    }
+  });
+  return issues;
+}
+
+function computeRisk(issues){
+  if (issues.length === 0) return "None";
+  const hasCritical = issues.some(i => i.severity === "critical");
+  const hasHigh = issues.some(i => i.severity === "high");
+  const hasMed = issues.some(i => i.severity === "medium");
+  if (hasCritical) return "High";
+  if (hasHigh || issues.length >= 5) return "High";
+  if (hasMed || issues.length >= 2) return "Medium";
+  return "Low";
+}
+
+const METER = {
+  None:   { pct:5,  color:"#3DD98C" },
+  Low:    { pct:28, color:"#8bd86a" },
+  Medium: { pct:62, color:"#FFB84D" },
+  High:   { pct:94, color:"#FF6B6B" },
+};
+
+/* ---------- AI explanations (offline / demo-safe) ---------- */
+function aiExplain(issues, beginner){
+  if (issues.length === 0) {
+    return beginner
+      ? "Great news — I didn't find any keys, passwords, personal data, or obvious leaks. Nothing here looks like it was hiding a secret."
+      : "No secrets, keys, PII, or misconfigurations were detected in this content.";
+  }
+  const byCat = {};
+  issues.forEach(i => { byCat[i.category] = (byCat[i.category] || 0) + 1; });
+  const catLines = Object.entries(byCat)
+    .map(([c,n]) => `${n} × ${CATEGORIES[c]?.label || c}`)
+    .join(", ");
+
+  if (beginner) {
+    return `Think of your code like a note stuck to your front door. Right now it's carrying ${catLines}.\n\n` +
+      `Anyone who walks by — a contractor, a teammate who forks the repo, a bot scanning GitHub — can read what's written there. ` +
+      `We'll move every secret into a locked drawer (environment variables or a secrets manager), ` +
+      `redact the personal info, and fix the risky configuration flags. Then we change the locks on anything that was already exposed.`;
+  }
+  return `Detected ${issues.length} issue${issues.length===1?"":"s"} across ${Object.keys(byCat).length} ` +
+    `categor${Object.keys(byCat).length===1?"y":"ies"}: ${catLines}.\n\n` +
+    `Critical findings (passwords, vendor keys, private keys, default creds) must be rotated immediately and moved to a secrets manager. ` +
+    `Personal data (PII / GDPR Art. 9 / PHI) should be tokenized or redacted at source. ` +
+    `Misconfigurations (CORS *, open S3, SSL disabled) should be fixed the same day.`;
+}
+
+function aiFixes(issues){
+  if (issues.length === 0) return [];
+  const cats = new Set(issues.map(i => i.category));
+  const out = [];
+  cats.forEach(c => { if (CATEGORY_TIP[c]) out.push(`${CATEGORIES[c].label}: ${CATEGORY_TIP[c]}`); });
+  return out;
+}
+
+/* ---------- Sample inputs covering the 14 categories ---------- */
+const SAMPLES = {
+  "Leaky config (secrets)": `// config/prod.js
+const config = {
+  db_password: "hunter2",
+  api_key: "sk-proj-abcd1234EFGH5678ijklMNOPqrst",
+  AWS_KEY: "AKIAIOSFODNN7EXAMPLE",
+  GITHUB_TOKEN: "ghp_aBcDeFgHiJkLmNoPqRsTuVwXyZ1234567890",
+  mongodb_uri: "mongodb+srv://admin:changeme@cluster0.mongo.net/db",
+  debug: true,
+  auth: false
+};`,
+
+  "Customer PII leak": `// user.json
+{
+  "full_name": "Jane Doe",
+  "dob": "1992-05-14",
+  "ssn": "123-45-6789",
+  "passport_number": "A12345678",
+  "email": "jane.doe@example.com",
+  "phone": "+1 415 555 0199",
+  "zip_code": "94107",
+  "gender": "female",
+  "ethnicity": "Asian",
+  "religion": "Buddhist"
+}`,
+
+  "Health record (PHI)": `// patient_export.csv
+patient_id: MRN004521
+diagnosis: diabetes
+medication: insulin 10 units
+full_name: "Mark Rivera"
+dob: 1984-11-02
+ip: 10.0.4.22
+doctor_email: dr.ng@hospital.internal`,
+
+  "Private key + JWT": `-----BEGIN RSA PRIVATE KEY-----
+MIIEowIBAAKCAQEArandomkeymaterialgoeshere...
+-----END RSA PRIVATE KEY-----
+
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4ifQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+jwt_secret: "super-secret-do-not-share"`,
+
+  "Misconfigured server": `// server.js
+app.use(cors({ origin: "*" }));
+app.get("/admin/", handler);
+fetch("https://mybucket.s3.amazonaws.com/private/dump.sql");
+process.env.NODE_ENV = "production";
+require("https").request({ rejectUnauthorized: false });
+const creds = { admin: "admin" };`,
+
+  "Clean code": `export function add(a, b) {
+  if (typeof a !== 'number' || typeof b !== 'number') {
+    throw new Error("Inputs must be numbers");
+  }
+  return a + b;
+}`,
+};
+
+/* ---------- UI ---------- */
+function App(){
+  const [content, setContent] = useState(SAMPLES["Leaky config (secrets)"]);
+  const [fileName, setFileName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [beginner, setBeginner] = useState(false);
+  const [result, setResult] = useState(null);
+  const [copied, setCopied] = useState(false);
+
+  const runScan = (asBeginner = beginner) => {
+    if (!content.trim()) return;
+    setLoading(true);
+    setResult(null);
+    setTimeout(() => {
+      const issues = detectIssues(content);
+      const risk = computeRisk(issues);
+      const byCategory = {};
+      Object.keys(CATEGORIES).forEach(k => byCategory[k] = 0);
+      issues.forEach(i => { byCategory[i.category] = (byCategory[i.category]||0) + 1; });
+      setResult({
+        risk, issues,
+        explanation: aiExplain(issues, asBeginner),
+        fixes: aiFixes(issues),
+        summary: {
+          total: issues.length,
+          critical: issues.filter(i=>i.severity==="critical").length,
+          high: issues.filter(i=>i.severity==="high").length,
+          medium: issues.filter(i=>i.severity==="medium").length,
+          low: issues.filter(i=>i.severity==="low").length,
+          byCategory,
+        },
+      });
+      setBeginner(asBeginner);
+      setLoading(false);
+    }, 650);
+  };
+
+  const onFile = (e) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    setFileName(f.name);
+    const reader = new FileReader();
+    reader.onload = (ev) => setContent(String(ev.target?.result || ""));
+    reader.readAsText(f);
+  };
+
+  const clearAll = () => { setContent(""); setFileName(""); setResult(null); setBeginner(false); };
+
+  const copyFixes = async () => {
+    if (!result?.fixes?.length) return;
+    try {
+      await navigator.clipboard.writeText(result.fixes.map(f => "• " + f).join("\n"));
+      setCopied(true); setTimeout(()=>setCopied(false), 1400);
+    } catch {}
+  };
+
+  return (
+    <div className="wrap">
+      <div className="top">
+        <div className="brand">
+          <div className="chip">P</div>
+          <h1>Pandora <span>AI Risk Scanner</span></h1>
+        </div>
+        <span className="pill">● LIVE · Prototype</span>
+      </div>
+
+      <div className="hero">
+        <h2>Paste anything. We'll tell you what's leaking.</h2>
+        <p>Pandora scans 14 categories — auth secrets, API keys, crypto keys, PII, PHI, financial data,
+          GDPR-sensitive fields, online identifiers and misconfigurations — then explains every finding
+          in plain English with a one-click fix. Toggle Beginner Mode for zero jargon.</p>
+      </div>
+
+      <div className="panel">
+        <label htmlFor="content">Content to scan</label>
+        <textarea
+          id="content"
+          value={content}
+          onChange={e => setContent(e.target.value)}
+          placeholder="Paste code, config, logs, CSV rows, or any text to analyze..."
+        />
+        <div className="samples">
+          <span className="mini" style={{marginRight:6}}>Try:</span>
+          {Object.keys(SAMPLES).map(k => (
+            <span key={k} className="sample" onClick={()=>{setContent(SAMPLES[k]); setResult(null); setFileName("");}}>
+              {k}
+            </span>
+          ))}
+        </div>
+        <div className="row">
+          <label className="upload">
+            <input type="file" accept=".txt,.md,.json,.js,.ts,.py,.html,.css,.csv,.log,.env,.yml,.yaml" onChange={onFile}/>
+            📎 {fileName ? "Replace file" : "Upload file"}
+          </label>
+          {fileName && <span className="filename">{fileName}</span>}
+          <div style={{marginLeft:"auto", display:"flex", gap:10, flexWrap:"wrap"}}>
+            <button className="ghost" onClick={clearAll} disabled={loading}>Clear</button>
+            <button className={"warn" + (beginner ? " active" : "")}
+                    onClick={()=>runScan(true)} disabled={loading || !content.trim()}>
+              🧒 Explain like I'm a beginner
+            </button>
+            <button className="primary" onClick={()=>runScan(false)} disabled={loading || !content.trim()}>
+              {loading ? (<><span className="spinner"/>Scanning…</>) : "Scan"}
+            </button>
+          </div>
+        </div>
+        <div className="hint">Nothing is stored. Runs entirely in your browser in this prototype.</div>
+      </div>
+
+      {result && <Results result={result} beginner={beginner} copyFixes={copyFixes} copied={copied} />}
+
+      {!result && !loading && (
+        <div className="panel" style={{marginTop:18}}>
+          <div className="empty">Paste some content and hit <b>Scan</b> — or click a sample above.</div>
+        </div>
+      )}
+
+      <div className="footer-note">Pandora prototype · offline-safe demo · Hackathon 2026</div>
+    </div>
+  );
+}
+
+function flagClass(flag){
+  if (flag === "CRITICAL") return "CRITICAL";
+  if (flag === "HIGH") return "HIGH";
+  if (flag === "MEDIUM") return "MEDIUM";
+  if (flag === "LOW") return "LOW";
+  if (flag === "COMMON IN GITHUB") return "COMMON";
+  if (flag === "VERY IMPORTANT") return "VERY";
+  return "MEDIUM";
+}
+
+function CategoryGroup({ catId, items, defaultOpen }){
+  const cat = CATEGORIES[catId];
+  const [open, setOpen] = useState(!!defaultOpen);
+  if (!cat || items.length === 0) return null;
+  return (
+    <div className="cat-group">
+      <div className={"cat-head " + (open ? "open" : "closed")} onClick={()=>setOpen(!open)}>
+        <span className="caret">▶</span>
+        <h4 className="cat-title">
+          {cat.label}
+          <span className="cat-tag">— {cat.tagline}</span>
+        </h4>
+        <span className={"flag " + flagClass(cat.flag)}>{cat.flag}</span>
+        <span className="cat-count">{items.length}</span>
+      </div>
+      {open && (
+        <div>
+          {items.map((iss, idx) => (
+            <div className="issue" key={idx}>
+              <div>
+                <h4>{iss.type}</h4>
+                <small>{iss.message}</small>
+                <small>Line {iss.line}: <code>{iss.match}</code></small>
+              </div>
+              <span className={"state " + iss.severity}>{iss.severity}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Results({ result, beginner, copyFixes, copied }){
+  const { risk, issues, explanation, fixes, summary } = result;
+  const m = METER[risk];
+
+  if (risk === "None") {
+    return (
+      <div className="panel" style={{marginTop:18}}>
+        <div className="clean">
+          <div className="emoji">✅</div>
+          <h3 style={{margin:"6px 0 4px", color:"#106b35"}}>Looks clean.</h3>
+          <p style={{margin:0}}>No secrets, PII, or misconfigurations were detected.</p>
+        </div>
+        <div className="explain" style={{marginTop:14}}>
+          <b>AI note.</b> {explanation}
+        </div>
+      </div>
+    );
+  }
+
+  // Group issues by category, using CATEGORY_ORDER so critical buckets come first
+  const grouped = {};
+  issues.forEach(i => { (grouped[i.category] = grouped[i.category] || []).push(i); });
+  const orderedCats = CATEGORY_ORDER.filter(c => grouped[c] && grouped[c].length > 0);
+  const activeCats = orderedCats.length;
+
+  return (
+    <>
+      <div className="panel" style={{marginTop:18}}>
+        <div className="toolbar">
+          <label style={{margin:0}}>Scan Results</label>
+          <span className={"badge " + risk.toLowerCase()}>
+            {risk === "High" ? "🔴" : risk === "Medium" ? "🟡" : "🟢"} {risk} Risk
+          </span>
+        </div>
+        <div className="meter-wrap">
+          <div className="meter"><div style={{width:m.pct+"%", background:m.color}}/></div>
+          <div className="scale"><span>SAFE</span><span>CAUTION</span><span>DANGER</span></div>
+        </div>
+        <div className="mini" style={{marginTop:8}}>
+          {summary.total} issue{summary.total===1?"":"s"} · across {activeCats} categor{activeCats===1?"y":"ies"} · {" "}
+          <b style={{color:"#7a0d0d"}}>{summary.critical} critical</b> · {" "}
+          <b style={{color:"#b91c1c"}}>{summary.high} high</b> · {" "}
+          <b style={{color:"#b2500c"}}>{summary.medium} medium</b> · {" "}
+          <b style={{color:"#118041"}}>{summary.low} low</b>
+        </div>
+
+        <div className="cat-summary">
+          {orderedCats.map(c => (
+            <div className="cat-chip" key={c}>
+              <span className={"flag " + flagClass(CATEGORIES[c].flag)}>{CATEGORIES[c].flag}</span>
+              <b>{CATEGORIES[c].label}</b>
+              <span className="n">{grouped[c].length}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="results">
+        <div className="card">
+          <label>Findings ({issues.length}) · grouped by category</label>
+          <div>
+            {orderedCats.map((c, i) => (
+              <CategoryGroup key={c} catId={c} items={grouped[c]} defaultOpen={i < 2} />
+            ))}
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="toolbar">
+            <label style={{margin:0}}>AI Explanation</label>
+            {beginner && <span className="state medium" style={{background:"#fff0d9"}}>Beginner Mode</span>}
+          </div>
+          <div className={"explain" + (beginner ? " beginner" : "")} style={{whiteSpace:"pre-wrap"}}>
+            {explanation}
+          </div>
+
+          <div className="toolbar" style={{marginTop:16}}>
+            <label style={{margin:0}}>Suggested Fixes (by category)</label>
+            <button className="ghost" onClick={copyFixes} disabled={!fixes.length}>
+              {copied ? "✓ Copied!" : "📋 Copy"}
+            </button>
+          </div>
+          {fixes.length === 0 ? (
+            <div className="mini">Nothing to fix.</div>
+          ) : (
+            <ul className="fixes" style={{margin:0, paddingLeft:20, color:"var(--slate)", fontSize:13.5}}>
+              {fixes.map((f, i) => <li key={i}>{f}</li>)}
+            </ul>
+          )}
+        </div>
+      </div>
+
+      {/* Fake diff preview */}
+      <div className="panel" style={{marginTop:18}}>
+        <div className="toolbar">
+          <label style={{margin:0}}>One-click fix (preview diff)</label>
+          <span className="mini">illustrative only</span>
+        </div>
+        <div className="diff">
+{`  const config = {
+-   db_password: "hunter2",
+-   api_key: "sk-proj-abcd1234EFGH5678ijkl",
+-   AWS_KEY: "AKIAIOSFODNN7EXAMPLE",
+-   GITHUB_TOKEN: "ghp_aBcDeFgHi...",
+-   debug: true,
++   db_password: process.env.DB_PASSWORD,
++   api_key: process.env.OPENAI_API_KEY,
++   AWS_KEY: process.env.AWS_ACCESS_KEY_ID,
++   GITHUB_TOKEN: process.env.GITHUB_TOKEN,
++   debug: process.env.NODE_ENV !== "production",
+  };`}
+        </div>
+      </div>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
